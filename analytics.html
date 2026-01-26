@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyses - MusicLog</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <script>
+        // Enregistrer le plugin DataLabels globalement
+        Chart.register(ChartDataLabels);
+    </script>
+</head>
+<body>
+    <!-- Fond animé Vanta.js -->
+    <div id="vanta-bg"></div>
+
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-compact-disc"></i>
+            <span>MusicLog</span>
+        </div>
+        <div class="nav-links">
+            <a href="index.html"><i class="fas fa-home"></i> Collection</a>
+            <a href="analytics.html" class="active"><i class="fas fa-chart-bar"></i> Analyses</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <header class="page-header">
+            <h1>Analyses de ma Collection</h1>
+            <p>Statistiques et visualisations de vos écoutes</p>
+        </header>
+
+        <!-- Statistiques générales -->
+        <section class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-compact-disc"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value" id="total-albums">0</span>
+                    <span class="stat-label">Albums écoutés</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-microphone"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value" id="total-artists">0</span>
+                    <span class="stat-label">Artistes différents</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value" id="avg-rating">0</span>
+                    <span class="stat-label">Note moyenne</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-guitar"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value" id="top-genre">-</span>
+                    <span class="stat-label">Genre préféré</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Graphiques -->
+        <section class="charts-section">
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-pie"></i> Répartition par Genre</h3>
+                    <div class="chart-container">
+                        <canvas id="genre-chart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-bar"></i> Distribution des Notes</h3>
+                    <div class="chart-container">
+                        <canvas id="rating-chart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-line"></i> Écoutes par Mois</h3>
+                    <div class="chart-container">
+                        <canvas id="timeline-chart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-area"></i> Albums par Décennie</h3>
+                    <div class="chart-container">
+                        <canvas id="decade-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tableaux de données -->
+        <section class="tables-section">
+            <div class="table-card">
+                <h3><i class="fas fa-trophy"></i> Top 10 Albums</h3>
+                <div class="table-container">
+                    <table class="data-table" id="top-albums-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Album</th>
+                                <th>Artiste</th>
+                                <th>Genre</th>
+                                <th>Note</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Données dynamiques -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <h3><i class="fas fa-users"></i> Artistes les plus écoutés</h3>
+                <div class="table-container">
+                    <table class="data-table" id="top-artists-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Artiste</th>
+                                <th>Nombre d'albums</th>
+                                <th>Note moyenne</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Données dynamiques -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <h3><i class="fas fa-tags"></i> Statistiques par Genre</h3>
+                <div class="table-container">
+                    <table class="data-table" id="genre-stats-table">
+                        <thead>
+                            <tr>
+                                <th>Genre</th>
+                                <th>Nombre d'albums</th>
+                                <th>Note moyenne</th>
+                                <th>Pourcentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Données dynamiques -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-card full-width">
+                <h3><i class="fas fa-calendar-alt"></i> Historique d'écoute</h3>
+                <div class="table-container">
+                    <table class="data-table" id="history-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Album</th>
+                                <th>Artiste</th>
+                                <th>Genre</th>
+                                <th>Année</th>
+                                <th>Note</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Données dynamiques -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- État vide -->
+        <div class="empty-analytics" id="empty-analytics" style="display: none;">
+            <i class="fas fa-chart-pie"></i>
+            <h3>Pas encore de données</h3>
+            <p>Ajoutez des albums pour voir vos statistiques d'écoute</p>
+            <a href="index.html" class="btn-primary">
+                <i class="fas fa-plus"></i> Ajouter des albums
+            </a>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 MusicLog - Votre journal musical personnel</p>
+    </footer>
+
+    <script src="analytics.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.dots.min.js"></script>
+    <script>
+        VANTA.DOTS({
+            el: "#vanta-bg",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            color: 0x6d28d9,
+            color2: 0x8b5cf6,
+            backgroundColor: 0x0,
+            size: 4.80,
+            spacing: 25.00
+        });
+    </script>
+</body>
+</html>
