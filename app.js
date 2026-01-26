@@ -24,6 +24,13 @@ async function loadAlbumsFromJSON() {
     albumsLoaded = true;
 }
 
+// Fonction pour obtenir l'URL de l'image via un proxy (contourne les restrictions CORS/hotlinking)
+function getProxiedImageUrl(url) {
+    if (!url) return null;
+    // Utiliser wsrv.nl comme proxy d'images (gratuit et fiable)
+    return `https://wsrv.nl/?url=${encodeURIComponent(url)}`;
+}
+
 // Éléments DOM
 const albumForm = document.getElementById('album-form');
 const albumsGrid = document.getElementById('albums-grid');
@@ -590,8 +597,9 @@ function createAlbumCard(album) {
         `<i class="fas fa-star ${i < album.rating ? 'filled' : ''}"></i>`
     ).join('');
     
-    const coverHtml = album.coverUrl 
-        ? `<img src="${album.coverUrl}" alt="${album.title}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-compact-disc placeholder-icon\\'></i>'">`
+    const proxiedCoverUrl = getProxiedImageUrl(album.coverUrl);
+    const coverHtml = proxiedCoverUrl 
+        ? `<img src="${proxiedCoverUrl}" alt="${album.title}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-compact-disc placeholder-icon\\'></i>'">`
         : '<i class="fas fa-compact-disc placeholder-icon"></i>';
     
     return `
@@ -624,8 +632,9 @@ function openAlbumDetail(albumId) {
         `<i class="fas fa-star ${i < album.rating ? 'filled' : ''}"></i>`
     ).join('');
     
-    const coverHtml = album.coverUrl 
-        ? `<img src="${album.coverUrl}" alt="${album.title}" class="modal-cover" onerror="this.src=''; this.style.display='none'">`
+    const proxiedCoverUrl = getProxiedImageUrl(album.coverUrl);
+    const coverHtml = proxiedCoverUrl 
+        ? `<img src="${proxiedCoverUrl}" alt="${album.title}" class="modal-cover" onerror="this.src=''; this.style.display='none'">`
         : `<div class="modal-cover" style="display:flex;align-items:center;justify-content:center;"><i class="fas fa-compact-disc" style="font-size:3rem;color:var(--purple-primary);opacity:0.5"></i></div>`;
     
     const listenDate = new Date(album.listenDate).toLocaleDateString('fr-FR', {
