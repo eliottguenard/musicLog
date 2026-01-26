@@ -27,8 +27,9 @@ async function loadAlbumsFromJSON() {
 // Fonction pour obtenir l'URL de l'image via un proxy (contourne les restrictions CORS/hotlinking)
 function getProxiedImageUrl(url) {
     if (!url) return null;
-    // Utiliser wsrv.nl comme proxy d'images (gratuit et fiable)
-    return `https://wsrv.nl/?url=${encodeURIComponent(url)}`;
+    // Utiliser images.weserv.nl comme proxy d'images (gratuit et fiable)
+    // Ajouter des paramètres pour optimiser le chargement
+    return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&default=1`;
 }
 
 // Éléments DOM
@@ -402,9 +403,9 @@ function fillFormWithImportedData(data) {
     document.getElementById('aoty-link').value = data.aotyLink || '';
     document.getElementById('album-format').value = data.format || '';
     
-    // Afficher la prévisualisation de la pochette
+    // Afficher la prévisualisation de la pochette (avec proxy)
     if (data.coverUrl) {
-        previewCoverImg.src = data.coverUrl;
+        previewCoverImg.src = getProxiedImageUrl(data.coverUrl);
         coverPreview.style.display = 'block';
     }
     
@@ -708,9 +709,9 @@ function editAlbum(albumId) {
     document.getElementById('cover-url').value = album.coverUrl || '';
     document.getElementById('aoty-link').value = album.aotyLink || '';
     
-    // Afficher la pochette si elle existe
+    // Afficher la pochette si elle existe (avec proxy)
     if (album.coverUrl) {
-        previewCoverImg.src = album.coverUrl;
+        previewCoverImg.src = getProxiedImageUrl(album.coverUrl);
         coverPreview.style.display = 'block';
     }
     
