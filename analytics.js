@@ -513,11 +513,7 @@ function populateGenreStatsTable() {
         <tr>
             <td>${genre.genre}</td>
             <td>${genre.count}</td>
-            <td>
-                <div class="rating-stars">
-                    ${createStarsHtml(Math.round(genre.avgRating))}
-                </div>
-            </td>
+            <td>${genre.avgRating.toFixed(1)}/10</td>
             <td>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <div style="width: 100px; height: 6px; background: #27272a; border-radius: 3px; overflow: hidden;">
