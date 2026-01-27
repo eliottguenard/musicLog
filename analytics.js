@@ -474,14 +474,7 @@ function populateTopArtistsTable() {
             <td>${index + 1}</td>
             <td>${artist.artist}</td>
             <td>${artist.count}</td>
-            <td>
-                <div class="rating-stars">
-                    ${createStarsHtml(Math.round(artist.avgRating))}
-                </div>
-                <span style="color: #a1a1aa; margin-left: 0.5rem; font-size: 0.75rem;">
-                    (${artist.avgRating.toFixed(1)})
-                </span>
-            </td>
+            <td>${artist.avgRating.toFixed(1)}/10</td>
         </tr>
     `).join('');
 }
