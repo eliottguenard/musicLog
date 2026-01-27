@@ -1,6 +1,10 @@
 // Récupérer les albums depuis localStorage
 let albums = JSON.parse(localStorage.getItem('musiclog-albums')) || [];
 
+// Configuration de la pagination pour l'historique
+const ITEMS_PER_PAGE = 25;
+let currentHistoryPage = 1;
+
 // Configuration des couleurs pour les graphiques
 const chartColors = {
     purple: '#8b5cf6',
@@ -519,14 +523,20 @@ function populateGenreStatsTable() {
     `).join('');
 }
 
-// Tableau de l'historique
-function populateHistoryTable() {
+// Tableau de l'historique avec pagination
+function populateHistoryTable(page = 1) {
+    currentHistoryPage = page;
     const tbody = document.querySelector('#history-table tbody');
     
     const sortedAlbums = [...albums]
         .sort((a, b) => new Date(b.listenDate) - new Date(a.listenDate));
     
-    tbody.innerHTML = sortedAlbums.map(album => {
+    const totalPages = Math.ceil(sortedAlbums.length / ITEMS_PER_PAGE);
+    const startIndex = (page - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedAlbums = sortedAlbums.slice(startIndex, endIndex);
+    
+    tbody.innerHTML = paginatedAlbums.map(album => {
         const date = new Date(album.listenDate).toLocaleDateString('fr-FR', {
             day: 'numeric',
             month: 'short',
@@ -548,6 +558,48 @@ function populateHistoryTable() {
             </tr>
         `;
     }).join('');
+    
+    // Mettre à jour les contrôles de pagination
+    updateHistoryPagination(page, totalPages);
+}
+
+// Mettre à jour les contrôles de pagination
+function updateHistoryPagination(currentPage, totalPages) {
+    const paginationContainer = document.getElementById('history-pagination');
+    if (!paginationContainer) return;
+    
+    const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+    const endItem = Math.min(currentPage * ITEMS_PER_PAGE, albums.length);
+    
+    let paginationHtml = `
+        <div class="pagination-info">
+            Affichage ${startItem}-${endItem} sur ${albums.length} albums
+        </div>
+        <div class="pagination-controls">
+            <button class="pagination-btn" onclick="goToHistoryPage(1)" ${currentPage === 1 ? 'disabled' : ''}>
+                <i class="fas fa-angle-double-left"></i>
+            </button>
+            <button class="pagination-btn" onclick="goToHistoryPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                <i class="fas fa-angle-left"></i>
+            </button>
+            <span class="pagination-pages">Page ${currentPage} / ${totalPages}</span>
+            <button class="pagination-btn" onclick="goToHistoryPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                <i class="fas fa-angle-right"></i>
+            </button>
+            <button class="pagination-btn" onclick="goToHistoryPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>
+                <i class="fas fa-angle-double-right"></i>
+            </button>
+        </div>
+    `;
+    
+    paginationContainer.innerHTML = paginationHtml;
+}
+
+// Naviguer vers une page de l'historique
+function goToHistoryPage(page) {
+    const totalPages = Math.ceil(albums.length / ITEMS_PER_PAGE);
+    if (page < 1 || page > totalPages) return;
+    populateHistoryTable(page);
 }
 
 // Créer le HTML des étoiles
