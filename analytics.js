@@ -86,71 +86,9 @@ function updateStatistics() {
 
 // Créer tous les graphiques
 function createCharts() {
-    createGenreChart();
     createRatingChart();
     createTimelineChart();
     createDecadeChart();
-}
-
-// Graphique de répartition par genre
-function createGenreChart() {
-    const ctx = document.getElementById('genre-chart').getContext('2d');
-    
-    const genreCounts = {};
-    albums.forEach(a => {
-        genreCounts[a.genre] = (genreCounts[a.genre] || 0) + 1;
-    });
-    
-    const sortedGenres = Object.entries(genreCounts).sort((a, b) => b[1] - a[1]);
-    
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: sortedGenres.map(g => g[0]),
-            datasets: [{
-                data: sortedGenres.map(g => g[1]),
-                backgroundColor: colorPalette.slice(0, sortedGenres.length),
-                borderWidth: 0,
-                hoverOffset: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'right',
-                    labels: {
-                        color: '#a1a1aa',
-                        padding: 15,
-                        usePointStyle: true,
-                        font: {
-                            size: 12
-                        }
-                    }
-                },
-                tooltip: {
-                    backgroundColor: '#1a1a25',
-                    titleColor: '#ffffff',
-                    bodyColor: '#a1a1aa',
-                    borderColor: '#27272a',
-                    borderWidth: 1,
-                    padding: 12,
-                    callbacks: {
-                        label: function(context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((context.raw / total) * 100).toFixed(1);
-                            return `${context.label}: ${context.raw} (${percentage}%)`;
-                        }
-                    }
-                },
-                datalabels: {
-                    display: false
-                }
-            },
-            cutout: '60%'
-        }
-    });
 }
 
 // Graphique de distribution des notes
