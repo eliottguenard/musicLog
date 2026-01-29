@@ -236,10 +236,14 @@ function createRatingChart() {
 function createTimelineChart() {
     const ctx = document.getElementById('timeline-chart').getContext('2d');
     
-    // Grouper par mois
+    // Grouper par mois (exclure janvier 2026)
     const monthCounts = {};
     albums.forEach(a => {
         const date = new Date(a.listenDate);
+        // Exclure janvier 2026
+        if (date.getFullYear() === 2026 && date.getMonth() === 0) {
+            return;
+        }
         const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
         monthCounts[key] = (monthCounts[key] || 0) + 1;
     });
