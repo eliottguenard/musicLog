@@ -442,7 +442,8 @@ function populateGenreStatsTable() {
             avgRating: stats.totalRating / stats.count,
             percentage: (stats.count / total * 100).toFixed(1)
         }))
-        .sort((a, b) => b.count - a.count);
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
     
     tbody.innerHTML = sortedGenres.map(genre => `
         <tr>
