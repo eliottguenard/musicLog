@@ -231,7 +231,15 @@ function createTimelineChart() {
                     padding: 12
                 },
                 datalabels: {
-                    display: false
+                    color: '#ffffff',
+                    anchor: 'end',
+                    align: 'top',
+                    offset: 4,
+                    font: {
+                        weight: 'bold',
+                        size: 12
+                    },
+                    formatter: (value) => value > 0 ? value : ''
                 }
             },
             scales: {
