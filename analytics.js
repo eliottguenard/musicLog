@@ -233,7 +233,7 @@ function createTimelineChart() {
                 datalabels: {
                     color: '#ffffff',
                     anchor: 'end',
-                    align: 'top',
+                    align: 'right',
                     offset: 4,
                     font: {
                         weight: 'bold',
