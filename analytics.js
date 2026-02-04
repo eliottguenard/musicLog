@@ -231,17 +231,7 @@ function createTimelineChart() {
                     padding: 12
                 },
                 datalabels: {
-                    color: '#ffffff',
-                    anchor: 'end',
-                    align: function(context) {
-                        const value = context.dataset.data[context.dataIndex];
-                        return value >= maxCount - 1 ? 'bottom' : 'top';
-                    },
-                    font: {
-                        weight: 'bold',
-                        size: 12
-                    },
-                    formatter: (value) => value > 0 ? value : ''
+                    display: false
                 }
             },
             scales: {
