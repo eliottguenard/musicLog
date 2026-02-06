@@ -2563,5 +2563,20 @@
     "aotyLink": "https://www.albumoftheyear.org/album/6673-alice-in-chains-jar-of-flies.php",
     "createdAt": "2026-02-06T15:36:02.239Z",
     "updatedAt": "2026-02-06T15:36:02.239Z"
+  },
+  {
+    "id": "1770392273416",
+    "title": "Double Hélice 2",
+    "artist": "Caballero",
+    "genre": "Hip-Hop",
+    "releaseYear": "2017",
+    "format": "LP",
+    "listenDate": "2026-02-06",
+    "rating": 7,
+    "review": "",
+    "coverUrl": "https://cdn2.albumoftheyear.org/album/80134-double-hlice-2.jpg",
+    "aotyLink": "https://www.albumoftheyear.org/album/80134-caballero-jeanjass-double-hlice-2.php",
+    "createdAt": "2026-02-06T15:37:53.416Z",
+    "updatedAt": "2026-02-06T15:37:53.416Z"
   }
 ]
