@@ -5,6 +5,98 @@ let currentRating = 0;
 let editingAlbumId = null;
 let importedData = null;
 
+// Configuration GitHub pour sauvegarder albums.json
+const GITHUB_CONFIG = {
+    owner: 'eliottguenard',
+    repo: 'musicLog',
+    path: 'albums.json',
+    branch: 'main'
+};
+
+// Récupérer ou demander le token GitHub
+function getGitHubToken() {
+    let token = localStorage.getItem('github-token');
+    if (!token) {
+        token = prompt(
+            'Pour sauvegarder vos albums sur GitHub, entrez votre Personal Access Token:\n\n' +
+            '1. Allez sur github.com/settings/tokens\n' +
+            '2. Cliquez "Generate new token (classic)"\n' +
+            '3. Cochez "repo" et générez\n' +
+            '4. Collez le token ici:'
+        );
+        if (token) {
+            localStorage.setItem('github-token', token.trim());
+        }
+    }
+    return token;
+}
+
+// Sauvegarder albums.json sur GitHub
+async function saveToGitHub() {
+    const token = getGitHubToken();
+    if (!token) {
+        console.warn('Pas de token GitHub, sauvegarde locale uniquement');
+        return false;
+    }
+
+    try {
+        // Récupérer le SHA actuel du fichier
+        const getResponse = await fetch(
+            `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}?ref=${GITHUB_CONFIG.branch}`,
+            {
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            }
+        );
+
+        let sha = null;
+        if (getResponse.ok) {
+            const data = await getResponse.json();
+            sha = data.sha;
+        }
+
+        // Encoder le contenu en base64
+        const content = btoa(unescape(encodeURIComponent(JSON.stringify(albums, null, 2))));
+
+        // Mettre à jour le fichier
+        const updateResponse = await fetch(
+            `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: `Update albums.json - ${new Date().toLocaleString('fr-FR')}`,
+                    content: content,
+                    sha: sha,
+                    branch: GITHUB_CONFIG.branch
+                })
+            }
+        );
+
+        if (updateResponse.ok) {
+            console.log('✅ Albums sauvegardés sur GitHub');
+            return true;
+        } else {
+            const error = await updateResponse.json();
+            console.error('Erreur GitHub:', error);
+            if (updateResponse.status === 401) {
+                localStorage.removeItem('github-token');
+                showToast('Token invalide, veuillez réessayer', 'error');
+            }
+            return false;
+        }
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde GitHub:', error);
+        return false;
+    }
+}
+
 // Charger les albums depuis le fichier JSON
 async function loadAlbumsFromJSON() {
     try {
@@ -430,7 +522,7 @@ function removeCover() {
 }
 
 // Gestion de la soumission du formulaire
-function handleFormSubmit(e) {
+async function handleFormSubmit(e) {
     e.preventDefault();
     
     const albumData = {
@@ -476,7 +568,7 @@ function handleFormSubmit(e) {
         showToast('Album ajouté avec succès !', 'success');
     }
     
-    saveAlbums();
+    await saveAlbums();
     resetForm();
     populateGenreFilter();
     renderAlbums();
@@ -508,12 +600,16 @@ function resetForm() {
     submitBtn.innerHTML = '<i class="fas fa-save"></i> Enregistrer l\'album';
 }
 
-// Sauvegarder dans localStorage (et afficher les données pour export)
-function saveAlbums() {
+// Sauvegarder les albums (localStorage + GitHub)
+async function saveAlbums() {
+    // Toujours sauvegarder en local comme backup
     localStorage.setItem('musiclog-albums', JSON.stringify(albums));
-    // Afficher dans la console pour faciliter l'export vers albums.json
-    console.log('Pour mettre à jour albums.json, copiez ce contenu :');
-    console.log(JSON.stringify(albums, null, 2));
+    
+    // Sauvegarder sur GitHub
+    const saved = await saveToGitHub();
+    if (saved) {
+        showToast('Album synchronisé avec GitHub', 'success');
+    }
 }
 
 // Filtrer et trier les albums
@@ -730,14 +826,13 @@ function editAlbum(albumId) {
 }
 
 // Supprimer un album
-function deleteAlbum(albumId) {
+async function deleteAlbum(albumId) {
     if (confirm('Êtes-vous sûr de vouloir supprimer cet album ?')) {
         albums = albums.filter(a => a.id !== albumId);
-        saveAlbums();
+        await saveAlbums();
         closeModal();
         populateGenreFilter();
         renderAlbums();
-        showToast('Album supprimé', 'success');
     }
 }
 
