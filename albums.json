@@ -560,14 +560,14 @@
     "artist": "Alice in Chains",
     "genre": "Grunge",
     "releaseYear": "1990",
-    "format": "LP",
+    "format": null,
     "listenDate": "2026-01-25",
-    "rating": 8,
+    "rating": 7,
     "review": "",
     "coverUrl": "https://cdn2.albumoftheyear.org/album/4842-facelift_234111.jpg",
     "aotyLink": "https://www.albumoftheyear.org/album/4842-alice-in-chains-facelift.php",
     "createdAt": "2026-01-25T22:03:45.186Z",
-    "updatedAt": "2026-01-25T22:03:45.186Z"
+    "updatedAt": "2026-02-06T15:47:21.133Z"
   },
   {
     "id": "1769378642088",
