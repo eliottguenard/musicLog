@@ -206,7 +206,7 @@ async function handleAotyImport() {
     
     try {
         // Utiliser un proxy CORS
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(url)}`;
         const response = await fetch(proxyUrl);
         
         if (!response.ok) {
