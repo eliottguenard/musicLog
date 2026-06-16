@@ -8,12 +8,30 @@ let importedData = null;
 // Configuration Supabase
 const supabaseUrl = 'https://jbbkquecyuaybrhtpjmd.supabase.co';
 const supabaseKey = 'sb_publishable_K5XbQ_52aqo3EyGAmLhU1A_g9dp5i9a';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+let supabaseClient = null;
+
+function initSupabase() {
+    try {
+        if (window.supabase && window.supabase.createClient) {
+            supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+            console.log('✅ Client Supabase initialisé');
+        } else {
+            console.error('❌ La librairie Supabase n\'est pas chargée');
+        }
+    } catch (e) {
+        console.error('❌ Erreur initialisation Supabase:', e);
+    }
+}
 
 // Charger les albums depuis Supabase
 async function loadAlbumsFromSupabase() {
+    if (!supabaseClient) {
+        console.warn('Supabase non disponible, chargement impossible');
+        albumsLoaded = true;
+        return;
+    }
     try {
-        const { data, error } = await supabase.from('albums').select('*');
+        const { data, error } = await supabaseClient.from('albums').select('*');
         if (error) throw error;
         
         if (data && data.length > 0) {
@@ -22,7 +40,6 @@ async function loadAlbumsFromSupabase() {
         }
     } catch (error) {
         console.error('Erreur lors du chargement depuis Supabase:', error);
-        // showToast('Erreur lors du chargement des albums', 'error'); // showToast might not be available here, wait it's declared lower.
     }
     albumsLoaded = true;
 }
@@ -60,7 +77,10 @@ const clearFormBtn = document.getElementById('clear-form-btn');
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', async () => {
-    // Charger les albums depuis le JSON d'abord
+    // Initialiser le client Supabase
+    initSupabase();
+    
+    // Charger les albums depuis Supabase
     await loadAlbumsFromSupabase();
     
     initializeStarRating();
@@ -462,7 +482,7 @@ async function handleFormSubmit(e) {
         }
         
         // Mise à jour Supabase
-        supabase.from('albums').update(albumData).eq('id', editingAlbumId).then(({error}) => {
+        supabaseClient.from('albums').update(albumData).eq('id', editingAlbumId).then(({error}) => {
             if (error) console.error('Erreur mise à jour Supabase:', error);
         });
         
@@ -484,7 +504,7 @@ async function handleFormSubmit(e) {
         albums.push(albumData);
         
         // Ajout Supabase
-        supabase.from('albums').insert([albumData]).then(({error}) => {
+        supabaseClient.from('albums').insert([albumData]).then(({error}) => {
             if (error) console.error('Erreur insertion Supabase:', error);
         });
         
@@ -747,7 +767,7 @@ async function deleteAlbum(albumId) {
         albums = albums.filter(a => a.id !== albumId);
         
         // Suppression Supabase
-        supabase.from('albums').delete().eq('id', albumId).then(({error}) => {
+        supabaseClient.from('albums').delete().eq('id', albumId).then(({error}) => {
             if (error) console.error('Erreur suppression Supabase:', error);
         });
         
