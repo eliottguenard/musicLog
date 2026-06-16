@@ -5,113 +5,24 @@ let currentRating = 0;
 let editingAlbumId = null;
 let importedData = null;
 
-// Configuration GitHub pour sauvegarder albums.json
-const GITHUB_CONFIG = {
-    owner: 'eliottguenard',
-    repo: 'musicLog',
-    path: 'albums.json',
-    branch: 'main'
-};
+// Configuration Supabase
+const supabaseUrl = 'https://jbbkquecyuaybrhtpjmd.supabase.co';
+const supabaseKey = 'sb_publishable_K5XbQ_52aqo3EyGAmLhU1A_g9dp5i9a';
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// Récupérer ou demander le token GitHub
-function getGitHubToken() {
-    let token = localStorage.getItem('github-token');
-    if (!token) {
-        token = prompt(
-            'Pour sauvegarder vos albums sur GitHub, entrez votre Personal Access Token:\n\n' +
-            '1. Allez sur github.com/settings/tokens\n' +
-            '2. Cliquez "Generate new token (classic)"\n' +
-            '3. Cochez "repo" et générez\n' +
-            '4. Collez le token ici:'
-        );
-        if (token) {
-            localStorage.setItem('github-token', token.trim());
-        }
-    }
-    return token;
-}
-
-// Sauvegarder albums.json sur GitHub
-async function saveToGitHub() {
-    const token = getGitHubToken();
-    if (!token) {
-        console.warn('Pas de token GitHub, sauvegarde locale uniquement');
-        return false;
-    }
-
+// Charger les albums depuis Supabase
+async function loadAlbumsFromSupabase() {
     try {
-        // Récupérer le SHA actuel du fichier
-        const getResponse = await fetch(
-            `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}?ref=${GITHUB_CONFIG.branch}`,
-            {
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            }
-        );
-
-        let sha = null;
-        if (getResponse.ok) {
-            const data = await getResponse.json();
-            sha = data.sha;
-        }
-
-        // Encoder le contenu en base64
-        const content = btoa(unescape(encodeURIComponent(JSON.stringify(albums, null, 2))));
-
-        // Mettre à jour le fichier
-        const updateResponse = await fetch(
-            `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`,
-            {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: `Update albums.json - ${new Date().toLocaleString('fr-FR')}`,
-                    content: content,
-                    sha: sha,
-                    branch: GITHUB_CONFIG.branch
-                })
-            }
-        );
-
-        if (updateResponse.ok) {
-            console.log('✅ Albums sauvegardés sur GitHub');
-            return true;
-        } else {
-            const error = await updateResponse.json();
-            console.error('Erreur GitHub:', error);
-            if (updateResponse.status === 401) {
-                localStorage.removeItem('github-token');
-                showToast('Token invalide, veuillez réessayer', 'error');
-            }
-            return false;
+        const { data, error } = await supabase.from('albums').select('*');
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+            albums = data;
+            console.log(`${albums.length} albums chargés depuis Supabase`);
         }
     } catch (error) {
-        console.error('Erreur lors de la sauvegarde GitHub:', error);
-        return false;
-    }
-}
-
-// Charger les albums depuis le fichier JSON
-async function loadAlbumsFromJSON() {
-    try {
-        const response = await fetch('albums.json');
-        if (response.ok) {
-            const jsonAlbums = await response.json();
-            if (jsonAlbums && jsonAlbums.length > 0) {
-                albums = jsonAlbums;
-                console.log(`${albums.length} albums chargés depuis albums.json`);
-            }
-        }
-    } catch (error) {
-        console.warn('Impossible de charger albums.json, utilisation du localStorage:', error);
-        // Fallback sur localStorage si le fichier JSON n'existe pas ou erreur
-        albums = JSON.parse(localStorage.getItem('musiclog-albums')) || [];
+        console.error('Erreur lors du chargement depuis Supabase:', error);
+        // showToast('Erreur lors du chargement des albums', 'error'); // showToast might not be available here, wait it's declared lower.
     }
     albumsLoaded = true;
 }
@@ -150,7 +61,7 @@ const clearFormBtn = document.getElementById('clear-form-btn');
 // Initialisation
 document.addEventListener('DOMContentLoaded', async () => {
     // Charger les albums depuis le JSON d'abord
-    await loadAlbumsFromJSON();
+    await loadAlbumsFromSupabase();
     
     initializeStarRating();
     populateGenreFilter();
@@ -544,11 +455,17 @@ async function handleFormSubmit(e) {
     };
     
     if (editingAlbumId) {
-        // Mise à jour
+        // Mise à jour locale
         const index = albums.findIndex(a => a.id === editingAlbumId);
         if (index !== -1) {
             albums[index] = albumData;
         }
+        
+        // Mise à jour Supabase
+        supabase.from('albums').update(albumData).eq('id', editingAlbumId).then(({error}) => {
+            if (error) console.error('Erreur mise à jour Supabase:', error);
+        });
+        
         showToast('Album modifié avec succès !', 'success');
         editingAlbumId = null;
     } else {
@@ -563,8 +480,14 @@ async function handleFormSubmit(e) {
             return;
         }
         
-        // Ajout
+        // Ajout local
         albums.push(albumData);
+        
+        // Ajout Supabase
+        supabase.from('albums').insert([albumData]).then(({error}) => {
+            if (error) console.error('Erreur insertion Supabase:', error);
+        });
+        
         showToast('Album ajouté avec succès !', 'success');
     }
     
@@ -600,16 +523,9 @@ function resetForm() {
     submitBtn.innerHTML = '<i class="fas fa-save"></i> Enregistrer l\'album';
 }
 
-// Sauvegarder les albums (localStorage + GitHub)
+// Sauvegarder les albums (désormais géré directement dans handleFormSubmit)
 async function saveAlbums() {
-    // Toujours sauvegarder en local comme backup
-    localStorage.setItem('musiclog-albums', JSON.stringify(albums));
-    
-    // Sauvegarder sur GitHub
-    const saved = await saveToGitHub();
-    if (saved) {
-        showToast('Album synchronisé avec GitHub', 'success');
-    }
+    // Les sauvegardes sont faites directement via Supabase
 }
 
 // Filtrer et trier les albums
@@ -829,10 +745,17 @@ function editAlbum(albumId) {
 async function deleteAlbum(albumId) {
     if (confirm('Êtes-vous sûr de vouloir supprimer cet album ?')) {
         albums = albums.filter(a => a.id !== albumId);
+        
+        // Suppression Supabase
+        supabase.from('albums').delete().eq('id', albumId).then(({error}) => {
+            if (error) console.error('Erreur suppression Supabase:', error);
+        });
+        
         await saveAlbums();
         closeModal();
         populateGenreFilter();
         renderAlbums();
+        showToast('Album supprimé !', 'success');
     }
 }
 
